@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Varroa Mite Treatment Calculator — BeeCalc</title>
+<meta name="description" content="Varroa mite calculator for beekeepers. Enter alcohol wash or sugar roll count to find mite load percentage and treatment threshold. Free tool.">
+<meta property="og:title" content="Varroa Mite Treatment Calculator — BeeCalc">
+<meta property="og:description" content="Varroa mite calculator for beekeepers. Enter alcohol wash or sugar roll count to find mite load percentage and treatment threshold. Free tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bee-calc/varroa.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Varroa Mite Treatment Calculator",
+  "url": "https://thehivemakes.github.io/hive-bee-calc/varroa.html",
+  "description": "Varroa mite calculator for beekeepers. Enter alcohol wash or sugar roll count to find mite load percentage and treatment threshold. Free tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bee<span>Calc</span></div><div class="tagline">Free beekeeping calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BeeCalc</a><span class="sep">/</span><span>Varroa Mite Treatment Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Varroa Mite Treatment Calculator</h1>
+    <p class="subtitle">Enter your mite wash count to determine if treatment is needed.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="mite_count">Mites counted</label>
+        <input type="number" id="mite_count" min="0" step="1" placeholder="9">
+      </div>
+      <div class="field">
+        <label for="bee_count">Bees in sample</label>
+        <input type="number" id="bee_count" min="100" step="1" placeholder="300" value="300">
+      </div>
+      <div class="field">
+        <label for="method">Sampling method</label>
+        <select id="method"><option value="alcohol">Alcohol wash</option><option value="sugar">Sugar roll</option><option value="sticky">Sticky board (24hr)</option></select>
+      </div>
+      <div class="field">
+        <label for="season">Season</label>
+        <select id="season"><option value="spring">Spring (Mar-May)</option><option value="summer">Summer (Jun-Aug)</option><option value="fall">Fall (Sep-Nov)</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Mite load (%)</span>
+        <span class="result-value" id="var-pct">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Mites per 100 bees</span>
+        <span class="result-value" id="var-per100">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Treatment threshold</span>
+        <span class="result-value" id="var-threshold">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Recommended action</span>
+        <span class="result-value" id="var-action">—</span>
+      </div>
+      <div class="result-note">Standard sample: 300 bees (≈½ cup). Alcohol wash is most accurate. Treatment thresholds: Spring >1%, Summer >2%, Fall >3% (Honey Bee Health Coalition guidelines).</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Treatment Thresholds by Season</h2>
+    <table class="ref-table" id="ref-table">
+      <thead><tr><th>Season</th><th>Threshold</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Spring (Mar–May)</td><td>>1% (3 mites/300 bees)</td><td>Protect spring buildup</td></tr>
+        <tr><td>Summer (Jun–Aug)</td><td>>2% (6 mites/300 bees)</td><td>Before mites spike with brood</td></tr>
+        <tr><td>Fall (Sep–Nov)</td><td>>3% (9 mites/300 bees)</td><td>Protect winter bees</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>How to Calculate Varroa Mite Load</h2>
+    <p>Varroa destructor is the most significant threat to managed honey bee colonies worldwide. Regular monitoring is essential for colony survival.</p>
+    <p>The standard method is the alcohol wash: collect about 300 bees (half a cup) from a brood frame, wash in alcohol or windshield washer fluid, and count the mites that fall out. Divide mites by bees and multiply by 100 for the percentage.</p>
+    <p>Treatment thresholds vary by season and region. Most extension services recommend treating above 2–3% mite load. Early treatment is always better than late treatment.</p>
+  </div>
+</main>
+<footer>Free beekeeping calculators. No signup, no tracking. Always verify treatment thresholds with your local extension office.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const mites = CalcCore.get('mite_count');
+  const bees = CalcCore.get('bee_count');
+  const method = CalcCore.getSelect('method');
+  const season = CalcCore.getSelect('season');
+  if (isNaN(mites)||isNaN(bees)||bees<=0) return;
+
+  let adjustedMites = mites;
+  if (method === 'sugar') adjustedMites = mites * 1.25;
+  if (method === 'sticky') adjustedMites = mites * 0.1;
+
+  const pct = (adjustedMites / bees) * 100;
+  const per100 = (adjustedMites / bees) * 100;
+
+  let threshold, action;
+  if (season === 'spring') {
+    threshold = '1% (3 mites per 300 bees)';
+    action = pct > 1 ? 'TREAT NOW \u2014 mite load exceeds spring threshold' : 'Monitor \u2014 below treatment threshold';
+  } else if (season === 'summer') {
+    threshold = '2% (6 mites per 300 bees)';
+    action = pct > 2 ? 'TREAT NOW \u2014 mite load exceeds summer threshold' : 'Monitor \u2014 below treatment threshold';
+  } else {
+    threshold = '3% (9 mites per 300 bees)';
+    action = pct > 3 ? 'TREAT NOW \u2014 mite load exceeds fall threshold' : 'Monitor \u2014 below treatment threshold';
+  }
+
+  if (method === 'sugar') threshold += ' (sugar roll less accurate \u2014 consider alcohol wash to confirm)';
+
+  CalcCore.set('var-pct', CalcCore.fmt(pct, 1) + '%');
+  CalcCore.set('var-per100', CalcCore.fmt(per100, 1) + ' mites per 100 bees');
+  CalcCore.set('var-threshold', threshold);
+  CalcCore.set('var-action', action);
+  CalcCore.showResult();
+  CalcCore.saveParams(['mite_count','bee_count','method','season']);
+}
+
+function clearAll() {
+  ["mite_count", "bee_count", "method", "season"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

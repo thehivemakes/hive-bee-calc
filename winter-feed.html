@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winter Feed Calculator — BeeCalc</title>
+<meta name="description" content="Winter bee feeding calculator. Calculate 2:1 sugar syrup and fondant quantities for overwintering. Free beekeeping tool.">
+<meta property="og:title" content="Winter Feed Calculator — BeeCalc">
+<meta property="og:description" content="Winter bee feeding calculator. Calculate 2:1 sugar syrup and fondant quantities for overwintering. Free beekeeping tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bee-calc/winter-feed.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Winter Feed Calculator",
+  "url": "https://thehivemakes.github.io/hive-bee-calc/winter-feed.html",
+  "description": "Winter bee feeding calculator. Calculate 2:1 sugar syrup and fondant quantities for overwintering. Free beekeeping tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bee<span>Calc</span></div><div class="tagline">Free beekeeping calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BeeCalc</a><span class="sep">/</span><span>Winter Feed Calculator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Winter Feed Calculator</h1>
+    <p class="subtitle">Enter colony weight deficit to find how much feed to prepare.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="target_stores">Target winter stores (lbs)</label>
+        <input type="number" id="target_stores" step="5" placeholder="60" value="60">
+      </div>
+      <div class="field">
+        <label for="current_stores">Current estimated stores (lbs)</label>
+        <input type="number" id="current_stores" step="5" placeholder="30">
+      </div>
+      <div class="field">
+        <label for="feed_type">Feed type</label>
+        <select id="feed_type"><option value="syrup21">2:1 sugar syrup (fall feeding)</option><option value="syrup11">1:1 sugar syrup (spring stimulation)</option><option value="fondant">Fondant/candy board</option></select>
+      </div>
+      <div class="field">
+        <label for="num_hives">Number of hives</label>
+        <input type="number" id="num_hives" min="1" step="1" placeholder="1" value="1">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Feed deficit</span>
+        <span class="result-value" id="wf-deficit">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Sugar needed</span>
+        <span class="result-value" id="wf-sugar">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Water needed</span>
+        <span class="result-value" id="wf-water">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total syrup volume</span>
+        <span class="result-value" id="wf-total-vol">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total for all hives</span>
+        <span class="result-value" id="wf-all-hives">—</span>
+      </div>
+      <div class="result-note">2:1 syrup (fall): 2 parts sugar to 1 part water by weight. 1 gallon of 2:1 syrup weighs ~11.5 lbs and provides ~8 lbs of honey-equivalent stores. Target 60–90 lbs stores for northern winters, 40–60 for southern.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Winter Store Requirements by Region</h2>
+    <table class="ref-table" id="ref-table">
+      <thead><tr><th>Region</th><th>Target Stores (lbs)</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Northern US / Canada</td><td>80–90</td><td>Long winters, 5+ months</td></tr>
+        <tr><td>Mid-Atlantic / Midwest</td><td>60–70</td><td>3–4 month winters</td></tr>
+        <tr><td>Southern US</td><td>40–50</td><td>Short winters, early forage</td></tr>
+        <tr><td>Pacific Northwest</td><td>50–60</td><td>Rainy, limited forage</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>How Much to Feed Bees for Winter</h2>
+    <p>Bees need adequate honey stores to survive winter. A strong colony in a northern climate needs 60–90 pounds of honey. If they are short, supplement with heavy sugar syrup (2:1 ratio) in fall or fondant/candy boards in winter.</p>
+    <p>To make 2:1 syrup: heat 1 gallon of water and dissolve 2 gallons worth of sugar (about 16 pounds of sugar per gallon of water). Feed using entrance feeders, top feeders, or frame feeders. Stop feeding when temperatures drop below 50°F consistently.</p>
+  </div>
+</main>
+<footer>Free beekeeping calculators. No signup, no tracking. Always verify treatment thresholds with your local extension office.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const target = CalcCore.get('target_stores');
+  const current = CalcCore.get('current_stores');
+  const feedType = CalcCore.getSelect('feed_type');
+  const hives = CalcCore.get('num_hives') || 1;
+  if (isNaN(target)||isNaN(current)) return;
+
+  const deficit = Math.max(0, target - current);
+
+  let sugarLbs, waterLbs, volGal, label;
+  if (feedType === 'syrup21') {
+    // 2:1 syrup: 2 lbs sugar per 1 lb water. 1 gal syrup ~ 11.5 lbs, provides ~8 lbs stores
+    const galNeeded = deficit / 8;
+    sugarLbs = galNeeded * 11.5 * (2/3);
+    waterLbs = galNeeded * 11.5 * (1/3);
+    volGal = galNeeded;
+    label = '2:1 syrup';
+  } else if (feedType === 'syrup11') {
+    const galNeeded = deficit / 6;
+    sugarLbs = galNeeded * 8.3 * 0.5;
+    waterLbs = galNeeded * 8.3 * 0.5;
+    volGal = galNeeded;
+    label = '1:1 syrup';
+  } else {
+    sugarLbs = deficit * 1.1;
+    waterLbs = deficit * 0.15;
+    volGal = 0;
+    label = 'fondant';
+  }
+
+  CalcCore.set('wf-deficit', CalcCore.fmt(deficit, 0) + ' lbs per hive');
+  CalcCore.set('wf-sugar', CalcCore.fmt(sugarLbs, 1) + ' lbs sugar per hive');
+  CalcCore.set('wf-water', CalcCore.fmt(waterLbs, 1) + ' lbs water per hive');
+  CalcCore.set('wf-total-vol', volGal > 0 ? CalcCore.fmt(volGal, 1) + ' gallons ' + label + ' per hive' : CalcCore.fmt(sugarLbs, 1) + ' lbs ' + label + ' per hive');
+  CalcCore.set('wf-all-hives', hives > 1 ? CalcCore.fmt(sugarLbs * hives, 0) + ' lbs sugar total for ' + hives + ' hives' : 'Single hive');
+  CalcCore.showResult();
+  CalcCore.saveParams(['target_stores','current_stores','feed_type','num_hives']);
+}
+
+function clearAll() {
+  ["target_stores", "current_stores", "feed_type", "num_hives"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

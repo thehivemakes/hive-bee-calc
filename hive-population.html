@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hive Population Estimator — BeeCalc</title>
+<meta name="description" content="Hive population calculator. Estimate colony size from frame counts. Brood pattern, adult bees, and stores assessment. Free beekeeping tool.">
+<meta property="og:title" content="Hive Population Estimator — BeeCalc">
+<meta property="og:description" content="Hive population calculator. Estimate colony size from frame counts. Brood pattern, adult bees, and stores assessment. Free beekeeping tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bee-calc/hive-population.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Hive Population Estimator",
+  "url": "https://thehivemakes.github.io/hive-bee-calc/hive-population.html",
+  "description": "Hive population calculator. Estimate colony size from frame counts. Brood pattern, adult bees, and stores assessment. Free beekeeping tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bee<span>Calc</span></div><div class="tagline">Free beekeeping calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BeeCalc</a><span class="sep">/</span><span>Hive Population Estimator</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Hive Population Estimator</h1>
+    <p class="subtitle">Enter frames of brood, bees, and honey to estimate colony size and health.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="frames_brood">Frames of capped brood</label>
+        <input type="number" id="frames_brood" min="0" step="0.5" placeholder="5">
+      </div>
+      <div class="field">
+        <label for="frames_bees">Frames covered with bees</label>
+        <input type="number" id="frames_bees" min="0" step="0.5" placeholder="8">
+      </div>
+      <div class="field">
+        <label for="hive_type">Hive type</label>
+        <select id="hive_type"><option value="deep">Langstroth deep (9-1/8\")</option><option value="medium">Langstroth medium (6-5/8\")</option><option value="top">Top bar</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Estimated adult bees</span>
+        <span class="result-value" id="pop-adults">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Estimated brood cells</span>
+        <span class="result-value" id="pop-brood">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Bees emerging in 12 days</span>
+        <span class="result-value" id="pop-emerging">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Colony strength</span>
+        <span class="result-value" id="pop-strength">—</span>
+      </div>
+      <div class="result-note">Deep frame: ~2,500 bees per side when fully covered (~5,000 per frame). ~6,000 cells per deep frame of capped brood. Medium frames are ~60% of deep frame values.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:12px;">Colony Strength Guide</h2>
+    <table class="ref-table" id="ref-table">
+      <thead><tr><th>Frames of Bees</th><th>Strength</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>2–4</td><td>Weak</td><td>May need combining or feeding</td></tr>
+        <tr><td>5–7</td><td>Moderate</td><td>Building or post-swarm</td></tr>
+        <tr><td>8–10</td><td>Strong</td><td>Healthy, productive</td></tr>
+        <tr><td>10+</td><td>Very strong</td><td>Consider splitting or adding supers</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>How to Estimate Hive Population</h2>
+    <p>Colony population assessment helps beekeepers make management decisions: when to add supers, when to split, when to combine weak colonies, and when to treat for diseases.</p>
+    <p>A standard deep Langstroth frame fully covered on both sides holds approximately 5,000 adult bees. A full frame of capped brood contains about 6,000 cells that will emerge as adult bees within 12 days.</p>
+  </div>
+</main>
+<footer>Free beekeeping calculators. No signup, no tracking. Always verify treatment thresholds with your local extension office.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const brood = CalcCore.get('frames_brood');
+  const bees = CalcCore.get('frames_bees');
+  const type = CalcCore.getSelect('hive_type');
+  if (isNaN(bees)||bees<0) return;
+
+  const mult = type === 'deep' ? 1.0 : type === 'medium' ? 0.6 : 0.5;
+  const beesPerFrame = 5000 * mult;
+  const cellsPerFrame = 6000 * mult;
+
+  const adults = Math.round(bees * beesPerFrame);
+  const broodCells = Math.round((brood || 0) * cellsPerFrame);
+  const emerging = Math.round(broodCells * 0.9);
+
+  let strength;
+  if (bees <= 4) strength = 'Weak \u2014 consider feeding, combining, or requeening';
+  else if (bees <= 7) strength = 'Moderate \u2014 building or recovering, monitor closely';
+  else if (bees <= 10) strength = 'Strong \u2014 healthy and productive';
+  else strength = 'Very strong \u2014 consider adding supers or splitting';
+
+  CalcCore.set('pop-adults', CalcCore.fmtInt(adults) + ' bees');
+  CalcCore.set('pop-brood', CalcCore.fmtInt(broodCells) + ' cells');
+  CalcCore.set('pop-emerging', '~' + CalcCore.fmtInt(emerging) + ' bees in next 12 days');
+  CalcCore.set('pop-strength', strength);
+  CalcCore.showResult();
+  CalcCore.saveParams(['frames_brood','frames_bees','hive_type']);
+}
+
+function clearAll() {
+  ["frames_brood", "frames_bees", "hive_type"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>

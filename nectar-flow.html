@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nectar Flow Planner — BeeCalc</title>
+<meta name="description" content="Nectar flow planning calculator for beekeepers. Time super additions and harvest based on regional flow patterns. Free tool.">
+<meta property="og:title" content="Nectar Flow Planner — BeeCalc">
+<meta property="og:description" content="Nectar flow planning calculator for beekeepers. Time super additions and harvest based on regional flow patterns. Free tool.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thehivemakes.github.io/hive-bee-calc/nectar-flow.html">
+<link rel="stylesheet" href="style.css">
+<script src="js/calc-core.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Nectar Flow Planner",
+  "url": "https://thehivemakes.github.io/hive-bee-calc/nectar-flow.html",
+  "description": "Nectar flow planning calculator for beekeepers. Time super additions and harvest based on regional flow patterns. Free tool.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any"
+}
+</script>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">Bee<span>Calc</span></div><div class="tagline">Free beekeeping calculators</div></div></header>
+<nav><div class="nav-inner"><a href="index.html">BeeCalc</a><span class="sep">/</span><span>Nectar Flow Planner</span></div></nav>
+<main>
+  <div class="ad-leaderboard" id="ad-top">Ad</div>
+  <div class="card">
+    <h1>Nectar Flow Planner</h1>
+    <p class="subtitle">Enter your region and key dates to plan super management.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label for="flow_start">Expected flow start (week of year)</label>
+        <input type="number" id="flow_start" min="1" max="52" step="1" placeholder="16">
+      </div>
+      <div class="field">
+        <label for="flow_peak">Expected peak flow (week of year)</label>
+        <input type="number" id="flow_peak" min="1" max="52" step="1" placeholder="22">
+      </div>
+      <div class="field">
+        <label for="flow_end">Expected flow end (week of year)</label>
+        <input type="number" id="flow_end" min="1" max="52" step="1" placeholder="30">
+      </div>
+      <div class="field">
+        <label for="num_colonies">Number of colonies</label>
+        <input type="number" id="num_colonies" min="1" step="1" placeholder="4" value="1">
+      </div>
+      <div class="field">
+        <label for="supers_per">Supers available per colony</label>
+        <input type="number" id="supers_per" min="1" step="1" placeholder="3" value="3">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+    <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <div class="result" id="result">
+      <div class="result-row">
+        <span class="result-label">Flow duration</span>
+        <span class="result-value" id="nf-duration">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Add first super by</span>
+        <span class="result-value" id="nf-add-super">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Check/add supers every</span>
+        <span class="result-value" id="nf-check">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Harvest window</span>
+        <span class="result-value" id="nf-harvest">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Total supers needed</span>
+        <span class="result-value" id="nf-total-supers">—</span>
+      </div>
+      <div class="result-note">Add first super 2 weeks before expected flow start. Check weekly during flow — add a super when the current one is 2/3 full. Harvest within 2 weeks of flow end to prevent robbing.</div>
+    </div>
+  </div>
+
+  <div class="ad-rectangle" id="ad-mid">Ad</div>
+  <div class="seo-section">
+    <h2>Planning Around the Nectar Flow</h2>
+    <p>The nectar flow is the period when major nectar sources are blooming and bees are actively foraging and producing surplus honey. Timing your management around the flow is critical for a successful harvest.</p>
+    <p>Add honey supers before the flow starts so bees have space to store nectar. A colony that runs out of space may swarm or backfill the brood nest. Check supers weekly during peak flow and add more when 2/3 full.</p>
+  </div>
+</main>
+<footer>Free beekeeping calculators. No signup, no tracking. Always verify treatment thresholds with your local extension office.<br>Built by <a href="https://thehivemakes.github.io/" style="color:var(--accent)">The Hive</a></footer>
+<script>
+
+function calculate() {
+  const start = CalcCore.get('flow_start');
+  const peak = CalcCore.get('flow_peak');
+  const end = CalcCore.get('flow_end');
+  const colonies = CalcCore.get('num_colonies') || 1;
+  const supers = CalcCore.get('supers_per') || 3;
+  if (isNaN(start)||isNaN(end)||start>=end) return;
+
+  const duration = end - start;
+  const addBy = Math.max(1, start - 2);
+  const harvestStart = end;
+  const harvestEnd = end + 2;
+
+  function weekToDate(w) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const day = ((w-1) * 7) % 365;
+    const m = Math.floor(day / 30.44);
+    const d = Math.round(day % 30.44) + 1;
+    return months[Math.min(m,11)] + ' ' + d;
+  }
+
+  CalcCore.set('nf-duration', duration + ' weeks (' + weekToDate(start) + ' \u2013 ' + weekToDate(end) + ')');
+  CalcCore.set('nf-add-super', 'Week ' + addBy + ' (' + weekToDate(addBy) + ')');
+  CalcCore.set('nf-check', '7\u201310 days during flow. Add super when current is 2/3 full.');
+  CalcCore.set('nf-harvest', weekToDate(harvestStart) + ' \u2013 ' + weekToDate(harvestEnd) + ' (within 2 weeks of flow end)');
+  CalcCore.set('nf-total-supers', (colonies * supers) + ' supers total (' + supers + ' per colony \u00d7 ' + colonies + ' colonies)');
+  CalcCore.showResult();
+  CalcCore.saveParams(['flow_start','flow_peak','flow_end','num_colonies','supers_per']);
+}
+
+function clearAll() {
+  ["flow_start", "flow_peak", "flow_end", "num_colonies", "supers_per"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || '';
+  });
+  document.getElementById('result').classList.remove('visible');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.addEventListener('DOMContentLoaded', () => { if (window.location.search) calculate(); });
+</script>
+</body>
+</html>
